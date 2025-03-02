@@ -148,4 +148,4 @@ void armControl(int armLeftorRight)
     {
         printf("Invalid arm selection.\n");
     }
-}
+}//jenn 
