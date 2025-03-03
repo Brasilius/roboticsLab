@@ -5,13 +5,13 @@ int distance, error, control;
 driveLeftWheel = 120;
 driveRightWheel = 120;
 programstate = 0;
-maxstate = 0;
+maxstate = 1;
 Kp = 0.5;
 
 int main()
 {
     camera_open();
-    while (program_state > maxstate)
+    while (program_state < maxstate)
     {
         camera_update();
         distance = get_object_center_x(0, 0);
