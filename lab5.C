@@ -1,151 +1,112 @@
 #include <kipr/wombat.h>
 #include <time.h>
 
-int driveRightWheel = 140;
-int driveLeftWheel = 140;
-int lightSensorThreshold = 2700; // Threshold for line detection
-float kP = 1.4;                  // Proportional Gain
-float kI = 0.09;                 // Integral Gain
-float kD = 0.3;                  // Derivative Gain
-int MAX_INTEGRAL = 1000;         // Maximum integral term to prevent windup
-int programState = 0;            // Controls primary loop
-int maxState = 1;                // Final State of program
-int analogFilter = 4800;         // Just an upper limit for sum checks if needed
+int distance, error, control;
+int driveLeftWheel = 120;
+int driveRightWheel = 120;
+int programstate = 0;
+int maxstate = 4; //Search, Go to Red, search, Go to green, end
+float Kp = 0.5;
+int redBox = 0; //Channel for red box
+int redThreshold = 120; //Threshold bounding box width for red box.
+int greenBucket = 1; // Channel for green bucket
+int greenThreshold = 100; // Threshold Bounding Box for green bucket.
 
-// These flags let you disable each sensor after it’s triggered
-int sensorActive0 = 1;
-int sensorActive1 = 1;
-
-// Threshold for bin detection
-int binThreshold = 1600;
-
-// Number of times to read and average analog
-int samplesCount = 5;
-
-void turn(int control);
-int readFilteredAnalog(int channel);
-void armControl(int armLeftorRight);
+void drive(int control);
+void turn();
 
 int main()
 {
-    enable_servos();
-    set_servo_position(0, 0);
-    set_servo_position(1, 1100);
-    
-    create_connect();
-    int starttime = seconds();
-    
-    int previousError = 0;
-    int integral = 0;
-
-    while(programState < maxState)
+    create_connect();	
+    camera_open();
+    while(programstate < 1) //Search
     {
-        int time = (seconds() - starttime);
-        int lfCliff = get_create_lfcliff_amt();
-        int rfCliff = get_create_rfcliff_amt();
-        int lCliff = get_create_lcliff_amt();
-        int rCliff = get_create_rcliff_amt();
+        create_stop();
+        camera_update();
         
-        int error = lfCliff - rfCliff;
-        integral += error;
-        if (integral > MAX_INTEGRAL) { integral = MAX_INTEGRAL; }
-        if (integral < -MAX_INTEGRAL){ integral = -MAX_INTEGRAL; }
-        
-        int derivative = error - previousError;
-        previousError = error;
-        
-        int control = (int)(kP * error + kI * integral + kD * derivative);
-
-        if (lfCliff > lightSensorThreshold && rfCliff > lightSensorThreshold 
-            && (lCliff > lightSensorThreshold || rCliff > lightSensorThreshold) 
-            && time > 55)
-        {
-            printf("End Found\n");
-            printf("time: %d\n", time);
-            create_stop();
-            programState++;
+        if(get_object_count(0) > 0){
+         	printf("Red Box Found\n");
+            programstate++;
+            continue;
         }
-        else if (control > 20 || control < -20)
+        else{
+        	turn();
+            msleep(50);
+        }
+    }
+    while (programstate < 2)
+    {
+        camera_update();
+        if(get_object_bbox(redBox, 0).width > 120){
+            create_stop();
+			printf("Red Box Reached\n");
+            programstate++;
+            continue;
+        }
+
+        
+        distance = get_object_center_x(redBox, 0);
+        error = 80 - distance;
+        control = Kp * error;
+
+        if (control > 1 || control < -1)
         {
-            turn(control);
+            drive(control);
         }
         else
         {
-            create_drive_direct(driveLeftWheel, driveRightWheel);
+            drive(0);
         }
-        
-        // Check if sensor 0 is active and triggered
-        if(sensorActive0)
-        {
-            int sensorVal0 = readFilteredAnalog(0);
-            if(sensorVal0 >= binThreshold)
-            {
-                create_stop();
-                armControl(1);  // left arm
-                printf("Left bin found, disabling sensor 0.\n");
-                sensorActive0 = 0;
-            }
-        }
-        
-        // Check if sensor 1 is active and triggered
-        if(sensorActive1)
-        {
-            int sensorVal1 = readFilteredAnalog(1);
-            if(sensorVal1 >= binThreshold)
-            {
-                create_stop();
-                armControl(0);  // right arm
-                printf("Right bin found, disabling sensor 1.\n");
-                sensorActive1 = 0;
-            }
-        }
+        msleep(50);
     }
     
-    disable_servos();
-    create_disconnect();
+    while(programstate < 3)
+    {
+    	create_stop();
+        camera_update();
+        
+        if(get_object_count(greenBucket) > 0){
+         	printf("Green Bucket Found\n");
+            programstate++;
+            continue;
+        }
+        else{
+        	turn();
+            msleep(50);
+        } 
+    }
+    
+    while(programstate < maxstate){
+        camera_update();
+        if(get_object_bbox(greenBucket, 0).width > 120){
+            create_stop();
+			printf("Green Bucket Reached\n");
+            programstate++;
+            continue;
+        }
+        
+        distance = get_object_center_x(greenBucket, 0);
+        error = 80 - distance;
+        control = Kp * error;
+
+        if (control > 1 || control < -1)
+        {
+            drive(control);
+        }
+        else
+        {
+            drive(0);
+        }
+        msleep(50);
+    }
     return 0;
 }
 
-// Simple function to read a channel multiple times and return the average
-int readFilteredAnalog(int channel)
+void drive(int control)
 {
-    long sum = 0;
-    for(int i = 0; i < samplesCount; i++)
-    {
-        sum += analog(channel);
-        msleep(10); // short delay to space out readings
-    }
-    return (int)(sum / samplesCount);
+    create_drive_direct(driveLeftWheel - control, driveRightWheel + control); // for right turn, input negative number
 }
-
-void turn(int control)
-{
-    create_drive_direct(driveLeftWheel - control, driveRightWheel + control);
-}
-
-// Same servo moves you had before, just uncommented for full usage
-void armControl(int armLeftorRight)
-{
-    if (armLeftorRight == 0) // Right
-    {
-        set_servo_position(0, 300); 
-        msleep(1000);
-        set_servo_position(0, 0);
-        create_drive_direct(140, 100);
-        msleep(500);
-        create_stop();
-    }
-    else if (armLeftorRight == 1) // Left
-    {
-        set_servo_position(1, 845);
-        msleep(1000);
-        set_servo_position(1, 1100);
-        create_drive_direct(100, 140);
-        msleep(500);
-        create_stop();
-    }
-    else
-    {
-        printf("Invalid arm selection.\n");
-    }
+                
+void turn(){
+    create_drive_direct(driveLeftWheel, -driveRightWheel); // Turns right
 }
