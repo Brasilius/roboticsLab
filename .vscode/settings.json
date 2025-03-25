@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "lab5.C": "cpp"
+        "lab5.C": "cpp",
+        "lab8.C": "cpp"
     }
 }
