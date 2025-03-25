@@ -20,13 +20,15 @@ int redThreshold = 120; //Threshold bounding box width for red box.
 int greenBucket = 1; // Channel for green bucket
 int greenThreshold = 100; // Threshold Bounding Box for green bucket.
     
-void armControl(int positionValForServo);    
+void armControlGrab();    
+void armControlDrop()
 void drive(int control);
 void turn();
     
 	create_connect();	
     camera_open();
-    
+    enable_servos();
+
     //state 1 : find red sponge 1 (broken into multiple substates (such as find, drive too, stop) 7.5 seconds max
     while(state not finished){
     
@@ -47,10 +49,23 @@ void turn();
 }
 
 
-void armControl(){ //calls the arm to perform the grabbing action
-
-
-
+void armControlGrab(){ //calls the arm to perform the grabbing action
+//ensure arm is in proper starting position
+msleep(500);
+set_servo_position(0, 1005);
+set_servo_position(1,1500);// claw is open for retrieval
+msleep(500);
+set_servo_position(0,1400); //lowers claw to barely above ground level - might even be touching
+msleep(500);
+set_servo_position(1, 1950); //claw closes to grab sponge
+msleep(500);
+set_servo_position(0, 1005);//raises arm back up for travel
+msleep(500);
+}
+void armControlDrop(){
+msleep(500);
+set_servo_position(1, 1400);
+msleep(500);
 }
 void drive(int control)
 {
