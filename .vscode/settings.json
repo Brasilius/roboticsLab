@@ -59,6 +59,7 @@
   "files.associations": {
     "lab5.C": "cpp",
     "lab6PI.C": "cpp",
-    "lab6PID.C": "cpp"
+    "lab6PID.C": "cpp",
+    "lab8.C": "cpp"
   }
 }
