@@ -101,3 +101,32 @@ void returnToRectangle{
     msleep(1000); //sleep with drive command to return to rectangle
     create_drive_direct(0, 0); //turn off motors post return
 }
+
+void wallRide{
+while(cameraMatch != 1){
+   
+    int time = (seconds() - starttime);
+    int lfCliff = get_create_lfcliff_amt();
+    int rfCliff = get_create_rfcliff_amt();
+    int lCliff = get_create_lcliff_amt();
+    int rCliff = get_create_rcliff_amt();
+    int error = lfCliff - rfCliff;
+    integral += error;
+    if (integral > MAX_INTEGRAL)
+        integral = MAX_INTEGRAL;
+    if (integral < -MAX_INTEGRAL)
+        integral = -MAX_INTEGRAL;
+    int derivative = error - previousError;
+    previousError = error;
+    int control = (int)(Kp * error + Ki * integral + Kd * derivative);
+
+   cameraMatch = 0; //reset camera match 
+}
+void cameraMatch(programState){
+    //basically a function to see if the robot see's a box
+    while(programState > 0){
+
+    }
+}
+
+}
