@@ -15,6 +15,7 @@ int blueBucket = 0;     // channel for blue bucket
 int greenThreshold = 0; // placeholder threshold
 int redThreshold = 0;   // placeholder threshold
 int blueThreshold = 0;  // placeholder threshold
+int lineThreshold = 2600; // Placeholder
 
 // Sensor port  (PLACEHOLDER ATM) MAY NOT BE NEEDED
 int sensor_left_port = 0;
@@ -130,7 +131,7 @@ void turn()
 void findBorder()
 {
     // while loop reading when we reach border [mind you example code here]
-    while ([analogSensor] < THRESHOLD_FOR_WHITETAPE)
+    while (get_create_lfcliff_amt() < lineThreshold && get_create_rfcliff_amt() < lineThreshold)
     {
         drive();
     }
