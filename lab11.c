@@ -8,7 +8,7 @@ float Kd = 0.05;
 //safety variables
 float MaxIntegral = 1000;
 
-//camera variables
+//camera variables (PLACEHOLDER ATM)
 int greenBucket = 0; //channel for green bucket
 int redBucket = 0; //channel for red bucket
 int blueBucket = 0; //channel for blue bucket
@@ -16,13 +16,14 @@ int greenThreshold = 0; //placeholder threshold
 int redThreshold = 0; //placeholder threshold
 int blueThreshold = 0; //placeholder threshold
 
-//Sensor port 
+//Sensor port  (PLACEHOLDER ATM) MAY NOT BE NEEDED
 int sensor_left_port = 0;
 int sensor_right_port = 1;
 int sensor_center_port = 2;
 
-//motor speed base (mm/s)
-int base_speed = 100;
+//motor speed base
+int driveLeftWheel = 120;
+int driveRightWheel = 120;
 
 //PID Variables
 float error, previous_error = 0, integral = 0, derivative;
@@ -47,15 +48,25 @@ int main(){
 
     }
     //find the first box
-    while(programState < 3){}
+    while(programState < 3){
+
+    }
     //return to rectangle
-    while(programState<4){}
+    while(programState<4){
+        returnToRectangle();
+    }
     //find the second box
-    while(programState<5){}
+    while(programState<5){
+
+    }
     //return to rectangle
-    while(programState<6){}
+    while(programState<6){
+        returnToRectangle();
+    }
     //find the third box
-    while(programState<7){}
+    while(programState<7){
+
+    }
 }
 
 void drive{
