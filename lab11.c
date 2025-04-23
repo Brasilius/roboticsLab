@@ -31,6 +31,8 @@ float error, previous_error = 0, integral = 0, derivative;
 void turn();
 void drive();
 void returnToRectangle();
+void findBorder();
+
 int main(){
     printf("connecting to create wallaby...\n");
     create_connect();
@@ -40,9 +42,9 @@ int main(){
     printf("connected!");
     int programState = 0; //used for program progression
     //state 1:: find rectangle border
-    while (programState < 1){ 
+    while (programState < 1){  
         //find the rectangle border and align 
-
+       findBorder();
     }
     //begin the wallride
     while (programState < 2){
@@ -55,6 +57,7 @@ int main(){
     //return to rectangle
     while(programState<4){
         returnToRectangle();
+        findBorder();
     }
     //find the second box
     while(programState<5){
@@ -63,11 +66,17 @@ int main(){
     //return to rectangle
     while(programState<6){
         returnToRectangle();
+        findBorder();
     }
     //find the third box
     while(programState<7){
 
     }
+    printf("disconnecting...\n");
+    create_stop();
+    create_disconnect();
+    printf("disconnected!");
+    return 0;
 }
 
 void drive{
@@ -78,8 +87,17 @@ void turn{
     create_drive_direct(driveLeftWheel, -driveRightWheel); // Turns right
 }
 
+void findBorder{
+      //while loop reading when we reach border [mind you example code here]
+      while([analogSensor] < THRESHOLD_FOR_WHITETAPE){
+        drive();
+    }
+    //stop when we reach the border
+    create_stop();
+}
+
 void returnToRectangle{
-    create_drive_direct(-driveLeftWheel, -driveRightWheel); // goes backwards back into circle
+    create_drive_direct(-driveLeftWheel*2, -driveRightWheel*2); // goes backwards back into circle
     msleep(1000); //sleep with drive command to return to rectangle
     create_drive_direct(0, 0); //turn off motors post return
 }
