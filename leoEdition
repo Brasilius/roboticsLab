@@ -1,12 +1,12 @@
 #include <kipr/wombat.h>
 
 // PID Constants (PLACEHOLDER ATM)
-float Kp = 0.2;
+float Kp = 0.5;
 float Ki = 0.1;
 float Kd = 0.05;
 
 // safety variables
-float MaxIntegral = 1000;
+float MAX_INTEGRAL = 1000;
 
 // camera variables (PLACEHOLDER ATM)
 int greenBucket = 1;    // channel for green bucket
@@ -27,51 +27,61 @@ int driveLeftWheel = 120;
 int driveRightWheel = 120;
 
 // PID Variables
-float error, previous_error = 0, integral = 0, derivative;
-
+float error, previousError = 0, integral = 0, derivative;
+int starttime;
 void turn();
-void drive();
+void drive(int control);
 void returnToRectangle();
 void findBorder();
 void box_distance();
 int cameraMatch();
+void wallRide();
+void box_distance_green();
+void box_distance_red();
+void box_distance_blue();
 
 int main()
 {
     printf("connecting to create wallaby...\n");
     create_connect();
-    printf("connected!");
-    printf("connecting camera!");
+    printf("connected!\n");
+    printf("connecting camera!\n");
     camera_open();
-    printf("connected!");
+    printf("connected!\n");
     int programState = 0; // used for program progression
     // state 1:: find rectangle border
     while (programState < 1)
     {
         // find the rectangle border and align
+        printf("Driving to border\n");
         findBorder();
+            set_create_total_angle(0);
+         	while(get_create_total_angle() < 90){
+             	create_drive_direct(-100, 100);
+                msleep(20);
+        }
         programState++;
     }
-    // begin the wallride
+
+    // find the green box
+    printf("Begin Wallride\n");
     while (programState < 2)
     {
-        wallride();
-        programState++;
-    }
-    // find the green box
-    while (programState < 3)
-    {
+      
+        printf("Object Count %d\n", get_object_count(greenBucket));
         if (get_object_count(greenBucket) > 0)
         {
+            printf("Green Box Found\n");
             box_distance_green();
         }
         if (analog(0) == 0)
         {
             programState++;
         }
+        wallRide();
     }
     // return to rectangle
-    while (programState < 4)
+    while (programState < 3)
     {
         findBorder();
         cameraMatch();
@@ -79,7 +89,7 @@ int main()
         programState++;
     }
     // find the red box
-    while (programState < 5)
+    while (programState < 4)
     {
         if (get_object_count(redBucket) > 0)
         {
@@ -91,7 +101,7 @@ int main()
         }
     }
     // return to rectangle
-    while (programState < 6)
+    while (programState < 5)
     {
         findBorder();
         cameraMatch();
@@ -99,7 +109,7 @@ int main()
         programState++;
     }
     // find the third box
-    while (programState < 7)
+    while (programState < 6)
     {
         if (get_object_count(blueBucket) > 0)
         {
@@ -119,7 +129,7 @@ int main()
 
 void drive(int control)
 {
-    create_drive_direct(driveLeftWheel - control, driveRightWheel - control);
+    create_drive_direct(driveLeftWheel - control, driveRightWheel + control);
 }
 
 void turn()
@@ -132,7 +142,7 @@ void findBorder()
     // while loop reading when we reach border [mind you example code here]
     while (get_create_lfcliff_amt() < lineThreshold && get_create_rfcliff_amt() < lineThreshold)
     {
-        drive();
+        drive(0);
     }
     // stop when we reach the border
     create_stop();
@@ -147,14 +157,10 @@ void returnToRectangle()
 
 void wallRide()
 {
-    while(cameraMatch() != 1)
-    { //(cameramatch: if blob is big 0_0
 
-        int time = (seconds() - starttime);
+
         int lfCliff = get_create_lfcliff_amt();
         int rfCliff = get_create_rfcliff_amt();
-        int lCliff = get_create_lcliff_amt();
-        int rCliff = get_create_rcliff_amt();
         int error = lfCliff - rfCliff;
         integral += error;
         if (integral > MAX_INTEGRAL)
@@ -167,7 +173,6 @@ void wallRide()
         drive(control);
 
 
-    }
 }
 
 int cameraMatch()
@@ -175,10 +180,12 @@ int cameraMatch()
     // basically a function to see if the robot see's a box
 
         {
-            if (get_object_count(greenBucket) > 0 || get_object_count(redBucket) > 0 || get_object_count(blueBucket);)
+            if (get_object_count(greenBucket) > 0 || get_object_count(redBucket) > 0 || get_object_count(blueBucket) > 0)
             {
                 return (1);
             }
+            
+            return(0);
         }
 }
 
@@ -192,13 +199,13 @@ void box_distance_red()
     create_stop();           // ensure the machine is stopped
     set_create_total_angle(0);
     while(get_create_total_angle() < 90){
-        create_drive(-100, 100); // turn the machine
+        create_drive_direct(-100, 100); // turn the machine
         msleep(20);
     }
 
     set_create_distance(304);
     while(get_create_distance() < 1254){
-        create_drive(-100, -100);
+        create_drive_direct(-100, -100);
         msleep(20);
     }
 
@@ -208,13 +215,13 @@ void box_distance_blue()
     create_stop();           // ensure the machine is stopped
     set_create_total_angle(0);
     while(get_create_total_angle() < 90){
-        create_drive(-100, 100); // turn the machine
+        create_drive_direct(-100, 100); // turn the machine
         msleep(20);
     }
 
     set_create_distance(1219);
     while(get_create_distance() < 1254){
-        create_drive(-100, -100);
+        create_drive_direct(-100, -100);
         msleep(20);
     }
 }
@@ -224,13 +231,14 @@ void box_distance_green()
     create_stop();           // ensure the machine is stopped
     set_create_total_angle(0);
     while(get_create_total_angle() < 90){
-        create_drive(-100, 100); // turn the machine
+        create_drive_direct(-100, 100); // turn the machine
         msleep(20);
     }
 
     set_create_distance(914);
     while(get_create_distance() < 1254){
-        create_drive(-100, -100);
+        create_drive_direct(-100, -100);
         msleep(20);
     }
 }
+
