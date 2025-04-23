@@ -55,7 +55,6 @@ int main()
     // begin the wallride
     while (programState < 2)
     {
-        cameramatch();
         wallride();
         programState++;
     }
@@ -118,7 +117,7 @@ int main()
     return 0;
 }
 
-void drive
+void drive(int control)
 {
     create_drive_direct(driveLeftWheel - control, driveRightWheel - control);
 }
@@ -148,7 +147,7 @@ void returnToRectangle()
 
 void wallRide()
 {
-    if (cameraMatch != 1)
+    while(cameraMatch() != 1)
     { //(cameramatch: if blob is big 0_0
 
         int time = (seconds() - starttime);
@@ -165,23 +164,22 @@ void wallRide()
         int derivative = error - previousError;
         previousError = error;
         int control = (int)(Kp * error + Ki * integral + Kd * derivative);
+        drive(control);
 
-        cameraMatch = 0; // reset camera match
+
     }
 }
 
-int cameraMatch(programState)
+int cameraMatch()
 {
     // basically a function to see if the robot see's a box
-    if (programState > 0)
-    {
+
         {
             if (get_object_count(greenBucket) > 0 || get_object_count(redBucket) > 0 || get_object_count(blueBucket);)
             {
                 return (1);
             }
         }
-    }
 }
 
 // function designed to create the 5 feet of distance needed from the box
