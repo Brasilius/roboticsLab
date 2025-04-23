@@ -29,7 +29,8 @@ int driveRightWheel = 120;
 float error, previous_error = 0, integral = 0, derivative;
 
 void turn();
-
+void drive();
+void returnToRectangle();
 int main(){
     printf("connecting to create wallaby...\n");
     create_connect();
@@ -79,6 +80,6 @@ void turn{
 
 void returnToRectangle{
     create_drive_direct(-driveLeftWheel, -driveRightWheel); // goes backwards back into circle
-    msleep(1000);
-    create_drive_direct(0, 0);
+    msleep(1000); //sleep with drive command to return to rectangle
+    create_drive_direct(0, 0); //turn off motors post return
 }
