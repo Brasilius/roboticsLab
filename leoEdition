@@ -52,12 +52,14 @@ int main()
     // begin the wallride
     while (programState < 2)
     {
+        cameramatch
         wallride();
+        programState++;
     }
     // find the first box
     while (programState < 3)
     {
-        cameramatch(programState); //feed cameramatch state 3 for the sake of this example 
+        cameramatch(programState); // feed cameramatch state 3 for the sake of this example
         box_distance();
     }
     // return to rectangle
@@ -98,7 +100,7 @@ void turn()
 void findBorder()
 {
     // while loop reading when we reach border [mind you example code here]
-    while ([analogSensor] < THRESHOLD_FOR_WHITETAPE)
+    if ([analogSensor] < THRESHOLD_FOR_WHITETAPE)
     {
         drive();
     }
@@ -115,7 +117,7 @@ void returnToRectangle()
 
 void wallRide()
 {
-    while (cameraMatch != 1)
+    if (cameraMatch != 1)
     { //(cameramatch: if blob is big 0_0
 
         int time = (seconds() - starttime);
@@ -135,30 +137,37 @@ void wallRide()
 
         cameraMatch = 0; // reset camera match
     }
+    p
 }
 
-void cameraMatch(programState)
+int cameraMatch(programState)
 {
     // basically a function to see if the robot see's a box
-    while (programState > 0)
+    if (programState > 0)
     {
+
+        {
+            if (get_object_count(greenBucket) > 0 || get_object_count(redBucket) > || get_object_count(blueBucket);)
+            {
+                return (1);
+            }
+        }
     }
 }
 
-//function designed to create the 5 feet of distance needed from the box
-//red is closest to tape
-//blue is furthest from tape
-//green is medium from tape 
+// function designed to create the 5 feet of distance needed from the box
+// red is closest to tape
+// blue is furthest from tape
+// green is medium from tape
 
-void box_distance_red(){
-create_stop(); //ensure the machine is stopped
-create_drive(-100,100); //turn the machine
-msleep(500); //needed delay for a turn
-create_drive(-100,-100);
-msleep(2000); //needed delay for 5 ft of distance - this should be the shortest of the 3
+void box_distance_red()
+{
+    create_stop();           // ensure the machine is stopped
+    create_drive(-100, 100); // turn the machine
+    msleep(500);             // needed delay for a turn
+    create_drive(-100, -100);
+    msleep(2000); // needed delay for 5 ft of distance - this should be the shortest of the 3
+}
+void box_distance_blue() {}
 
-
-} 
-void box_distance_blue(){}
-
-void box_distance_green(){}
+void box_distance_green() {}
